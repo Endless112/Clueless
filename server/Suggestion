@@ -1,0 +1,73 @@
+import random
+
+# Define suspects, weapons, and rooms
+suspects = ["Miss Scarlet", "Professor Plum", "Mrs. Peacock", "Mr. Green", "Colonel Mustard", "Mrs. White"]
+weapons = ["Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench"]
+rooms = ["Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Study", "Hall", "Lounge"]
+
+# Shuffle and randomly choose the murder details
+def create_murder_case():
+    suspect = random.choice(suspects)
+    weapon = random.choice(weapons)
+    room = random.choice(rooms)
+    return suspect, weapon, room
+
+murder_case = create_murder_case()
+print("Murder case has been created:", murder_case)  # This is just for testing, will be hidden for players
+
+class ClueGame:
+    def __init__(self, num_players):
+        self.players = [f"Player {i+1}" for i in range(num_players)]  # List of players
+        self.suspects = suspects
+        self.weapons = weapons
+        self.rooms = rooms
+        self.murder_case = create_murder_case()
+        self.players_cards = {player: random.sample(suspects + weapons + rooms, 3) for player in self.players}
+        self.turn = 0  # To track whose turn it is
+
+    def next_turn(self):
+        self.turn = (self.turn + 1) % len(self.players)
+        return self.players[self.turn]
+
+    def get_suggestion(self, player):
+        # Players make suggestions by picking a suspect, weapon, and room
+        suggestion = random.choice(self.suspects), random.choice(self.weapons), random.choice(self.rooms)
+        print(f"{player} suggests: {suggestion}")
+        return suggestion
+
+    def check_suggestion(self, suggestion, player):
+        # Check if anyone can disprove the suggestion
+        for other_player, cards in self.players_cards.items():
+            if suggestion[0] in cards or suggestion[1] in cards or suggestion[2] in cards:
+                print(f"{other_player} disproves the suggestion with a card!")
+                return other_player
+        print("No one could disprove the suggestion.")
+        return None
+
+    def make_accusation(self, accusation, player):
+        if accusation == self.murder_case:
+            print(f"{player} has won the game with the correct accusation!")
+            return True
+        else:
+            print(f"{player} has made an incorrect accusation!")
+            return False
+
+# Simulate a few turns with suggestions and accusations
+game = ClueGame(4)  # 4 players for example
+game_over = False
+
+while not game_over:
+    current_player = game.next_turn()
+    print(f"--- {current_player}'s turn ---")
+
+    # Player makes a suggestion
+    suggestion = game.get_suggestion(current_player)
+    disprover = game.check_suggestion(suggestion, current_player)
+    
+    if not disprover:
+        # If no one disproves, player may choose to make an accusation
+        accusation = random.choice([game.murder_case, ("Miss Scarlet", "Revolver", "Kitchen")])
+        if game.make_accusation(accusation, current_player):
+            game_over = True
+    else:
+        print(f"{current_player}'s turn ends, moving to the next player.")
